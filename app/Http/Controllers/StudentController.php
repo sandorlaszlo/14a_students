@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateStudentRequest;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
@@ -19,9 +21,39 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // public function store(CreateStudentRequest $request)
     public function store(Request $request)
     {
-        $student = Student::create($request->all());
+        $validator = Validator::make($request->all(), [
+            "first_name"=> ["required","min:4"],
+            "last_name"=> "required",
+            "email"=> "required|email|unique:students,email",
+            "rank"=> "integer"
+        ], [
+            "required" => "A(z) :attribute mező kitöltése kötelező.",
+            "email.unique"=> "Ez az e-mail cím már foglalt.",
+
+        ]);
+
+        //$validated = $validator->validate();
+
+        if ($validator->fails()) {
+            // return response()->json($validator->errors(), 422);
+            return response()->json(["message" => "Hibás adatok."], 422);
+        }
+
+
+
+        // $request->validate([
+        //     // "first_name"=> "required|min:4",
+        //     "first_name"=> ["required","min:4"],
+        //     "last_name"=> "required",
+        //     "email"=> "required|email|unique:students,email",
+        //     "rank"=> "integer"
+        // ]);
+
+        $student = Student::create($validated);
+        //$student = Student::create($request->all());
         // $student = Student::create([
         //     "first_name"=> $request->first_name,
         //     "last_name"=> $request->last_name,
